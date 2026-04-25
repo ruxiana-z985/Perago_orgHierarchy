@@ -4,7 +4,7 @@ services:
     name: perago-api
     env: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm run build:prod
     startCommand: npm run start:prod
     healthCheckPath: /health
     envVars:
