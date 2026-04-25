@@ -2,10 +2,9 @@ services:
   # API Service
   - type: web
     name: perago-api
-    env: node
+    env: docker
     plan: free
-    buildCommand: npm install && npm run build:prod
-    startCommand: npm run start:prod
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -16,7 +15,16 @@ services:
         value: 100
       - key: PORT
         value: 3000
-    # Database connection will be automatically handled by Render
-    databases:
-      - name: perago-db
-        plan: free
+      - key: FRONTEND_URL
+        value: https://your-api-name.onrender.com
+      - key: ORG_DOMAIN
+        value: perago.com
+      - key: APPROVER_EMAIL
+        value: rizu34455@gmail.com
+      - key: BACKUP_APPROVER_EMAIL
+        value: admin@perago.com
+
+# Database connection will be automatically handled by Render
+databases:
+  - name: perago-db
+    plan: free
