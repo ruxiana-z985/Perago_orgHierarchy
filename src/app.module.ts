@@ -1,31 +1,43 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { UserEntity } from './entities/user.entity';
-import { PhotoEntity } from './entities/photo.entity';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { OrgChartModule } from './org-chart.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'root',
-      database: 'orga_structure',
-      entities: [UserEntity, PhotoEntity],
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        ttl: Number(configService.get<number>('THROTTLE_TTL', 60)), // seconds
+        limit: Number(configService.get<number>('THROTTLE_LIMIT', 100)), // requests per ttl
+      }),
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const isProduction = configService.get<string>('NODE_ENV') === 'production';
+        return {
+          type: 'postgres' as const,
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: Number(configService.get<string>('DB_PORT', '5432')),
+          username: configService.get<string>('DB_USERNAME', 'postgres'),
+          password: configService.get<string>('DB_PASSWORD', 'root'),
+          database: configService.get<string>('DB_NAME', 'orga_structure'),
+          entities: [],
+          synchronize: !isProduction, // Disable in production
+          autoLoadEntities: true,
+          logging: !isProduction ? ['query', 'error'] : ['error'], // Detailed logs in dev, errors only in prod
+        };
+      },
+    }),
+    OrgChartModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule {
-  constructor(private dataSource: DataSource) {
-console.log(dataSource.toString())
-
-  }
-
-}
+export class AppModule {}

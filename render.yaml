@@ -1,0 +1,22 @@
+services:
+  # API Service
+  - type: web
+    name: perago-api
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: THROTTLE_TTL
+        value: 60
+      - key: THROTTLE_LIMIT
+        value: 100
+      - key: PORT
+        value: 3000
+    # Database connection will be automatically handled by Render
+    databases:
+      - name: perago-db
+        plan: free

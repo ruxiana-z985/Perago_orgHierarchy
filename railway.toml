@@ -1,0 +1,28 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[variables]
+NODE_ENV = "production"
+THROTTLE_TTL = "60"
+THROTTLE_LIMIT = "100"
+PORT = "3000"
+
+[[services]]
+name = "perago-api"
+source_dir = "/"
+healthcheck_path = "/health"
+healthcheck_timeout = 100
+restart_policy_type = "on_failure"
+restart_policy_max_retries = 10
+
+[services.variables]
+NODE_ENV = "production"
+THROTTLE_TTL = "60"
+THROTTLE_LIMIT = "100"
+PORT = "3000"
