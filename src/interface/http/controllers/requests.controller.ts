@@ -38,6 +38,16 @@ export class RequestsController {
     return this.confirmHandler.execute(id, token);
   }
 
+  @Get(':id/confirm')
+  @ApiOperation({ summary: 'Requester confirms a request from an email link.' })
+  @ApiQuery({ name: 'token', required: true })
+  confirmFromEmail(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query('token') token: string,
+  ) {
+    return this.confirmHandler.execute(id, token);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get request status and impact details.' })
   getRequest(@Param('id', new ParseUUIDPipe()) id: string) {
@@ -49,6 +59,17 @@ export class RequestsController {
   @ApiQuery({ name: 'token', required: true })
   @ApiQuery({ name: 'approverName', required: false })
   approve(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: ApproveChangeRequestQueryDto,
+  ) {
+    return this.approveHandler.execute(id, query.token, query.approverName);
+  }
+
+  @Get(':id/approve')
+  @ApiOperation({ summary: 'Approver executes an approved request from an email link.' })
+  @ApiQuery({ name: 'token', required: true })
+  @ApiQuery({ name: 'approverName', required: false })
+  approveFromEmail(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query() query: ApproveChangeRequestQueryDto,
   ) {
