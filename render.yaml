@@ -13,6 +13,8 @@ services:
           property: connectionString
       - key: NODE_ENV
         value: production
+      - key: DB_SYNCHRONIZE
+        value: "true"
       - key: THROTTLE_TTL
         value: 60
       - key: THROTTLE_LIMIT

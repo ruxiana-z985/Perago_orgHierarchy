@@ -26,10 +26,11 @@ import { OrgChartModule } from './org-chart.module';
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
         const isProduction = configService.get<string>('NODE_ENV') === 'production';
         const databaseUrl = configService.get<string>('DATABASE_URL');
+        const synchronize = configService.get<string>('DB_SYNCHRONIZE') === 'true';
         const baseOptions: TypeOrmModuleOptions = {
           type: 'postgres' as const,
           entities: [],
-          synchronize: !isProduction, // Disable in production
+          synchronize: isProduction ? synchronize : true,
           autoLoadEntities: true,
           logging: !isProduction ? ['query', 'error'] : ['error'], // Detailed logs in dev, errors only in prod
           retryAttempts: 10,
