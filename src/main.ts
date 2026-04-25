@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
-import { ThrottlerGuard } from '@nestjs/throttler';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,9 +23,6 @@ async function bootstrap() {
     contentSecurityPolicy: isProduction ? undefined : false,
     crossOriginEmbedderPolicy: false,
   }));
-
-  // Apply rate limiting globally
-  app.useGlobalGuards(app.get(ThrottlerGuard));
 
   const config = new DocumentBuilder()
     .setTitle('Perago Information Systems API')
