@@ -1,77 +1,23 @@
+// org-chart.policies.ts
+// This file contains PURE business rules.
+// It imports NOTHING from NestJS, TypeORM, or any infrastructure library.
+
 import {
   ChangeActionType,
-  ChangeRequestStatus,
   PositionStatus,
   ReassignmentStrategy,
 } from './org-chart.enums';
 
-export class EmailPolicy {
-  static normalizeRequesterEmail(email: string, allowedDomain: string): string {
-    const normalized = (email ?? '').trim().toLowerCase();
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
-      throw new Error('INVALID_EMAIL');
-    }
-
-    // Allow specific Gmail addresses and the allowed domain
-    const allowedGmailAddresses = ['ruxiana985@gmail.com'];
-    const isAllowedGmail = allowedGmailAddresses.includes(normalized);
-    const isAllowedDomain = normalized.endsWith(`@${allowedDomain.toLowerCase()}`);
-
-    if (!isAllowedGmail && !isAllowedDomain) {
-      throw new Error('INVALID_DOMAIN');
-    }
-
-    return normalized;
-  }
-}
-
-export class RequestLifecyclePolicy {
-  static ensureConfirmable(
-    status: ChangeRequestStatus,
-    createdAt: Date,
-    confirmationExpiryHours: number,
-    tokenMatches: boolean,
-  ): void {
-    if (status !== ChangeRequestStatus.PENDING_CONFIRMATION) {
-      throw new Error('REQUEST_NOT_CONFIRMABLE');
-    }
-
-    if (new Date(createdAt.getTime() + confirmationExpiryHours * 60 * 60 * 1000) < new Date()) {
-      throw new Error('CONFIRMATION_EXPIRED');
-    }
-
-    if (!tokenMatches) {
-      throw new Error('INVALID_CONFIRMATION_TOKEN');
-    }
-  }
-
-  static ensureApprovable(
-    status: ChangeRequestStatus,
-    expiresAt: Date,
-    tokenMatches: boolean,
-  ): void {
-    if (status !== ChangeRequestStatus.PENDING_APPROVAL) {
-      throw new Error('REQUEST_NOT_APPROVABLE');
-    }
-
-    if (expiresAt < new Date()) {
-      throw new Error('REQUEST_EXPIRED');
-    }
-
-    if (!tokenMatches) {
-      throw new Error('INVALID_APPROVAL_TOKEN');
-    }
-  }
-}
-
+// PositionPolicy enforces rules about the position hierarchy
 export class PositionPolicy {
+  // Rule: You cannot delete the root position (the one with no parent)
   static assertRootNotDeleted(parentId: string | null): void {
     if (parentId === null) {
       throw new Error('ROOT_IMMUTABLE');
     }
   }
 
+  // Rule: You cannot change a root position's parent
   static assertRootNotReparented(
     currentParentId: string | null,
     nextParentId: string | null,
@@ -81,6 +27,7 @@ export class PositionPolicy {
     }
   }
 
+  // Rule: You cannot make a position a child of itself or its descendants
   static assertNoCircularReference(
     positionId: string,
     newParentId: string | null,
@@ -89,12 +36,12 @@ export class PositionPolicy {
     if (!newParentId) {
       return;
     }
-
     if (positionId === newParentId || descendantIds.has(newParentId)) {
       throw new Error('CIRCULAR_REFERENCE');
     }
   }
 
+  // Rule: The hierarchy cannot exceed a maximum depth
   static assertDepthWithinLimit(
     nextDepth: number,
     maxDepth: number,
@@ -104,6 +51,8 @@ export class PositionPolicy {
     }
   }
 
+  // Rule: When deleting a position that has children,
+  // you must specify what happens to those children
   static assertDeleteStrategy(
     actionType: ChangeActionType,
     childrenCount: number,
@@ -118,6 +67,7 @@ export class PositionPolicy {
     }
   }
 
+  // Helper: Check if a position status is "active"
   static isActive(status: PositionStatus): boolean {
     return status === PositionStatus.ACTIVE;
   }

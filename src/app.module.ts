@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm/dist/interfaces/typeorm-options.interface';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -13,7 +12,6 @@ import { OrgChartModule } from './org-chart.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    ScheduleModule.forRoot(),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
